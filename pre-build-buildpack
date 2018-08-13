@@ -15,7 +15,7 @@ install_certificates() {
 
     echo "-----> adding ${f##*/}"
 
-    id=$(docker run -i -a stdin "$IMG" /bin/bash -c "cat > /usr/share/ca-certificates/${f##*/}" < "$f")
+    id=$(docker run -i -a stdin "$IMG" /bin/bash -c "cat > /usr/local/share/ca-certificates/${f##*/}" < "$f")
     # docker attach "$id"
     test "$(docker wait "$id")" -eq 0
     docker commit "$id" "$IMG" > /dev/null
