@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+
+install_certificates() {
+  local APP="$1"
+  local IMG="dokku/$APP"
+  local DIR="/home/dokku/${APP}/install-certificates"
+
+  echo "-----> copying files from ${DIR}..."
+
+  while read -rd $'\0' f ; do
+    #dirname=$(dirname "$f")
+    #target="${dirname#${DIR}}"
+
+    echo "-----> adding ${f##*/}"
+
+    id=$(docker run -i -a stdin "$IMG" /bin/bash -c "cat > /usr/share/ca-certificates/${f##*/}" < "$f")
+    # docker attach "$id"
+    test "$(docker wait "$id")" -eq 0
+    docker commit "$id" "$IMG" > /dev/null
+  done < <(find "$DIR" -type f -print0)
+
+  id=$(docker run -d "$IMG" /bin/bash -e -c "update-ca-certificates")
+  test "$(docker wait "$id")" -eq 0
+  docker commit "$id" "$IMG" > /dev/null
+}
+
+install_certificates "$@"

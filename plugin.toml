@@ -1,0 +1,4 @@
+[plugin]
+description = "install certificates"
+version = "0.0.1"
+[plugin.config]
