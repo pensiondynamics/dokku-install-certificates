@@ -10,13 +10,10 @@ install_certificates() {
   echo "-----> copying files from ${DIR}..."
 
   while read -rd $'\0' f ; do
-    #dirname=$(dirname "$f")
-    #target="${dirname#${DIR}}"
-
-    echo "-----> adding ${f##*/}"
+    echo "       adding ${f##*/}"
 
     id=$(docker run -i -a stdin "$IMG" /bin/bash -c "cat > /usr/local/share/ca-certificates/${f##*/}" < "$f")
-    # docker attach "$id"
+    # docker attach "$id" # not sure if this is needed...
     test "$(docker wait "$id")" -eq 0
     docker commit "$id" "$IMG" > /dev/null
   done < <(find "$DIR" -type f -print0)
