@@ -22,6 +22,8 @@ install_certificates() {
     id=$(docker run -d "$IMG" /bin/bash -e -c "update-ca-certificates")
     test "$(docker wait "$id")" -eq 0
     docker commit "$id" "$IMG" > /dev/null
+  else
+    echo "-----> install-certificates directory not found"
   fi
 }
 
