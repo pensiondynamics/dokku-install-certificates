@@ -7,20 +7,22 @@ install_certificates() {
   local IMG="dokku/$APP"
   local DIR="/home/dokku/${APP}/install-certificates"
 
-  echo "-----> copying files from ${DIR}..."
+  if [ -d "$DIR" ] ; then
+    echo "-----> copying files from ${DIR}..."
 
-  while read -rd $'\0' f ; do
-    echo "       adding ${f##*/}"
+    while read -rd $'\0' f ; do
+      echo "       adding ${f##*/}"
 
-    id=$(docker run -i -a stdin "$IMG" /bin/bash -c "cat > /usr/local/share/ca-certificates/${f##*/}" < "$f")
-    # docker attach "$id" # not sure if this is needed...
+      id=$(docker run -i -a stdin "$IMG" /bin/bash -c "cat > /usr/local/share/ca-certificates/${f##*/}" < "$f")
+      # docker attach "$id" # not sure if this is needed...
+      test "$(docker wait "$id")" -eq 0
+      docker commit "$id" "$IMG" > /dev/null
+    done < <(find "$DIR" -type f -print0)
+
+    id=$(docker run -d "$IMG" /bin/bash -e -c "update-ca-certificates")
     test "$(docker wait "$id")" -eq 0
     docker commit "$id" "$IMG" > /dev/null
-  done < <(find "$DIR" -type f -print0)
-
-  id=$(docker run -d "$IMG" /bin/bash -e -c "update-ca-certificates")
-  test "$(docker wait "$id")" -eq 0
-  docker commit "$id" "$IMG" > /dev/null
+  fi
 }
 
 install_certificates "$@"
